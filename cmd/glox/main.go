@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"io/ioutil"
 	"os"
 )
 
@@ -57,10 +59,41 @@ func exitWithError(err error) {
 }
 
 func runFile(path string) error {
-	return nil
+	file, err := os.OpenFile(path, os.O_RDONLY, 744)
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	source, err := ioutil.ReadAll(file)
+	if err != nil {
+		return err
+	}
+
+	return run(source)
 }
 
 func runPrompt() error {
-	fmt.Printf("Welcome to glox %s", version())
+	fmt.Printf("Welcome to glox %s\n\n", version())
+
+	scanner := bufio.NewReader(os.Stdin)
+
+	for {
+		fmt.Print("> ")
+		line, err := scanner.ReadBytes('\n')
+		if err != nil {
+			break
+		}
+
+		if err = run(line); err != nil {
+			exitWithError(err)
+		}
+	}
+
+	return nil
+}
+
+func run(source []byte) error {
 	return nil
 }
