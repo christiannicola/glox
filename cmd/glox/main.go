@@ -13,6 +13,7 @@ var (
 	// BuildDate will be set with ldflags and shows the time stamp on when the interpreter was built
 	BuildDate string
 )
+)
 
 func main() {
 	arguments := os.Args[1:]
@@ -30,7 +31,7 @@ func main() {
 			fmt.Println(version())
 		default:
 			if err := runFile(arguments[0]); err != nil {
-				exitWithError(err)
+				printErrorAndExit(err, 74)
 			}
 		}
 
@@ -38,7 +39,7 @@ func main() {
 	}
 
 	if err := runPrompt(); err != nil {
-		exitWithError(err)
+		printErrorAndExit(err, 74)
 	}
 }
 
@@ -53,9 +54,13 @@ func version() string {
 	return fmt.Sprintf("%s (built %s)", Version, BuildDate)
 }
 
-func exitWithError(err error) {
+func printError(err error) {
 	_, _ = fmt.Fprint(os.Stderr, err.Error())
-	os.Exit(74)
+}
+
+func printErrorAndExit(err error, code int) {
+	printError(err)
+	os.Exit(code)
 }
 
 func runFile(path string) error {
@@ -83,15 +88,13 @@ func runPrompt() error {
 		fmt.Print("> ")
 		line, err := scanner.ReadBytes('\n')
 		if err != nil {
-			break
+			return err
 		}
 
 		if err = run(line); err != nil {
-			exitWithError(err)
+			printError(err)
 		}
 	}
-
-	return nil
 }
 
 func run(source []byte) error {

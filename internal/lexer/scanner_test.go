@@ -7,13 +7,13 @@ import (
 	"testing"
 )
 
-func randomTestString(t *testing.T, n int, addGarbage bool) string {
+func randomTestString(t *testing.T, n int, garbage bool) string {
 	t.Helper()
 
 	charset := "(){}.,-+;*"
 
-	if addGarbage {
-		charset += " abcdefghijklmnopqrstuvwxyz123456789"
+	if garbage {
+		charset = " abcdefghijklmnopqrstuvwxyz123456789\n"
 	}
 
 	var permitted = []rune(charset)
@@ -35,11 +35,11 @@ func TestScanner_ScanTokens(t *testing.T) {
 
 	assert.NoError(t, err)
 	// NOTE (c.nicola): We add an EOF token to the set, so len should be sampleSize + 1
-	assert.Len(t, tokens, sampleSize + 1)
+	assert.Len(t, tokens, sampleSize+1)
 
 	scanner = lexer.NewScanner(randomTestString(t, sampleSize, true))
 	tokens, err = scanner.ScanTokens()
 
-	assert.NoError(t, err)
-	assert.Less(t, len(tokens), sampleSize + 1)
+	assert.Error(t, err)
+	assert.Nil(t, tokens)
 }
