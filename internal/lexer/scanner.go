@@ -68,6 +68,81 @@ func (s *Scanner) scanToken() error {
 		s.addEmptyToken(Semicolon)
 	case '*':
 		s.addEmptyToken(Star)
+	case '!':
+		isBangEqual, err := s.matchNext('=')
+		if err != nil {
+			return err
+		}
+
+		if isBangEqual {
+			s.addEmptyToken(BangEqual)
+		} else {
+			s.addEmptyToken(Bang)
+		}
+	case '=':
+		isEqualEqual, err := s.matchNext('=')
+		if err != nil {
+			return err
+		}
+
+		if isEqualEqual {
+			s.addEmptyToken(EqualEqual)
+		} else {
+			s.addEmptyToken(Equal)
+		}
+	case '<':
+		isLessEqual, err := s.matchNext('=')
+		if err != nil {
+			return err
+		}
+
+		if isLessEqual {
+			s.addEmptyToken(LessEqual)
+		} else {
+			s.addEmptyToken(Less)
+		}
+	case '>':
+		isGreaterEqual, err := s.matchNext('=')
+		if err != nil {
+			return err
+		}
+
+		if isGreaterEqual {
+			s.addEmptyToken(GreaterEqual)
+		} else {
+			s.addEmptyToken(Greater)
+		}
+	case '/':
+		isComment, err := s.matchNext('/')
+
+		if err != nil {
+			return err
+		}
+
+		if !isComment {
+			s.addEmptyToken(Slash)
+		} else {
+			for {
+				if s.isAtEnd() {
+					break
+				}
+
+				newLine, err := s.peek()
+				if err != nil {
+					return err
+				}
+
+				if newLine != '\x0A' {
+					s.advance()
+				}
+			}
+		}
+	case '\x0A': // line feed
+		s.line++
+	case '\x0D': // carriage return
+	case ' ': // whitespace
+	case '\x09': // horizontal tab
+	case '\x0C': // form feed
 	default:
 		return SyntaxError{
 			line:    s.line,
@@ -79,9 +154,28 @@ func (s *Scanner) scanToken() error {
 	return nil
 }
 
+func (s *Scanner) seek(pos int64) error {
+	_, err := s.reader.Seek(pos, io.SeekStart)
+
+	return err
+}
+
+func (s *Scanner) peek() (r rune, err error) {
+	r = '\x00'
+
+	if s.isAtEnd() {
+		return
+	}
+
+	r, err = s.advance()
+
+	s.current--
+
+	return
+}
+
 func (s *Scanner) advance() (r rune, err error) {
-	_, err = s.reader.Seek(s.current, io.SeekStart)
-	if err != nil {
+	if err = s.seek(s.current); err != nil {
 		return
 	}
 
@@ -92,11 +186,36 @@ func (s *Scanner) advance() (r rune, err error) {
 	return
 }
 
+func (s *Scanner) matchNext(expected rune) (bool, error) {
+	if s.isAtEnd() {
+		return false, nil
+	}
+
+	actual, err := s.advance()
+
+	if actual != expected {
+		s.current--
+
+		return false, err
+	}
+
+	s.current++
+
+	return true, err
+}
+
 func (s *Scanner) addEmptyToken(tokenType TokenType) {
 	s.addToken(tokenType, nil)
 }
 
 func (s *Scanner) addToken(tokenType TokenType, literal interface{}) {
-	text := s.source[s.start:s.current]
+	var text string
+
+	if s.current > int64(len(s.source)) {
+		text = s.source[s.start : len(s.source)-1]
+	} else {
+		text = s.source[s.start:s.current]
+	}
+
 	s.tokens = append(s.tokens, NewToken(tokenType, text, literal, s.line))
 }

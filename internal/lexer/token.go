@@ -67,3 +67,8 @@ func NewToken(tokenType TokenType, lexeme string, literal interface{}, line int6
 func (t Token) String() string {
 	return fmt.Sprintf("%d %s %v", t.tokenType, t.lexeme, t.literal)
 }
+
+// Type returns the TokenType of t
+func (t Token) Type() TokenType {
+	return t.tokenType
+}

@@ -13,7 +13,6 @@ var (
 	// BuildDate will be set with ldflags and shows the time stamp on when the interpreter was built
 	BuildDate string
 )
-)
 
 func main() {
 	arguments := os.Args[1:]
