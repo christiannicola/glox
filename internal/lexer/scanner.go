@@ -143,7 +143,9 @@ func (s *Scanner) scanToken() error {
 				}
 
 				if newLine != lineFeed {
-					s.advance()
+					if _, err = s.advance(); err != nil {
+						return err
+					}
 				}
 			}
 		}
