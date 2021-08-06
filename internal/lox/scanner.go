@@ -16,21 +16,10 @@ const (
 	nullTerminator rune = '\x00'
 )
 
-// Scanner is responsible for scanning source code line by line and generating the tokens from
-// said source code.
-type Scanner struct {
-	source   string
-	reader   *strings.Reader
-	tokens   []Token
-	start    int64
-	current  int64
-	line     int64
-	keywords map[string]TokenType
-}
+var keywords map[string]TokenType
 
-// NewScanner returns a new Scanner that can scan an extract tokens from source
-func NewScanner(source string) Scanner {
-	keywords := make(map[string]TokenType)
+func init() {
+	keywords = make(map[string]TokenType)
 
 	keywords["and"] = And
 	keywords["class"] = Class
@@ -48,8 +37,22 @@ func NewScanner(source string) Scanner {
 	keywords["true"] = True
 	keywords["var"] = Var
 	keywords["while"] = While
+}
 
-	return Scanner{source, strings.NewReader(source), make([]Token, 0), 0, 0, 1, keywords}
+// Scanner is responsible for scanning source code line by line and generating the tokens from
+// said source code.
+type Scanner struct {
+	source  string
+	reader  *strings.Reader
+	tokens  []Token
+	start   int64
+	current int64
+	line    int64
+}
+
+// NewScanner returns a new Scanner that can scan an extract tokens from source
+func NewScanner(source string) Scanner {
+	return Scanner{source, strings.NewReader(source), make([]Token, 0), 0, 0, 1}
 }
 
 // ScanTokens scans the source code and returns a slice of Token from it. Returns an error if
@@ -382,7 +385,7 @@ func (s *Scanner) identifier() error {
 
 	text := s.source[s.start:s.current]
 
-	if k, ok := s.keywords[text]; ok {
+	if k, ok := keywords[text]; ok {
 		s.addEmptyToken(k)
 	} else {
 		s.addToken(Identifier, text)
