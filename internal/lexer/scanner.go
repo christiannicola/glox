@@ -3,6 +3,7 @@ package lexer
 import (
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 )
 
@@ -12,6 +13,7 @@ const (
 	whitespace     rune = ' '
 	horizontalTab  rune = '\x09'
 	formFeed       rune = '\x0C'
+	nullTerminator rune = '\x00'
 )
 
 // Scanner is responsible for scanning source code line by line and generating the tokens from
@@ -156,6 +158,10 @@ func (s *Scanner) scanToken() error {
 	case horizontalTab:
 	case formFeed:
 	default:
+		if s.isDigit(r) {
+			return s.number()
+		}
+
 		return SyntaxError{
 			line:    s.line,
 			where:   "somewhere in the code",
@@ -173,13 +179,25 @@ func (s *Scanner) seek(pos int64) error {
 }
 
 func (s *Scanner) peek() (r rune, err error) {
-	r = '\x00'
+	r = nullTerminator
 
 	if s.isAtEnd() {
 		return
 	}
 
 	r, err = s.advance()
+
+	s.current--
+
+	return
+}
+
+func (s *Scanner) peekNext() (r rune, err error) {
+	if r, err = s.advance(); err != nil {
+		return
+	}
+
+	r, err = s.peek()
 
 	s.current--
 
@@ -243,6 +261,65 @@ func (s *Scanner) string() error {
 
 	// NOTE (c.nicola): Trim the surrounding " from the string and add the token
 	s.addToken(String, s.source[s.start + 1:s.current - 1])
+
+	return nil
+}
+
+func (s *Scanner) isDigit(r rune) bool {
+	return r >= '0' && r <= '9'
+}
+
+func (s *Scanner) number() error {
+	advanceUntilNonDigit := func() error {
+		for {
+			r, err := s.peek()
+			if err != nil {
+				return err
+			}
+
+			if !s.isDigit(r) {
+				return nil
+			}
+
+			if _, err = s.advance(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := advanceUntilNonDigit(); err != nil {
+		return err
+	}
+
+	// NOTE (c.nicola): Check if this is a floating point number
+	r, err := s.peek()
+	if err != nil {
+		return err
+	}
+
+	if r == '.' {
+		r, err = s.peekNext()
+		if err != nil {
+			return err
+		}
+
+		if s.isDigit(r) {
+			if _, err = s.advance(); err != nil {
+				return err
+			}
+
+			if err = advanceUntilNonDigit(); err != nil {
+				return err
+			}
+		}
+	}
+
+	f, err := strconv.ParseFloat(s.source[s.start:s.current], 64)
+	if err != nil {
+		return err
+	}
+
+	s.addToken(Number, f)
 
 	return nil
 }
