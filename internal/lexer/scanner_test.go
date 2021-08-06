@@ -37,6 +37,7 @@ func TestScanner_ScanTokens(t *testing.T) {
 		{description: "Comment", source: "// this is a comment", expectedSliceLen: 1, tokenType: lexer.EOF},
 		{description: "EmptyFile", source: "", expectedSliceLen: 1, tokenType: lexer.EOF},
 		{description: "Whitespace", source: "\t\n\r\f ", expectedSliceLen: 1, tokenType: lexer.EOF},
+		{description: "String", source: "\"test-string\"", expectedSliceLen: 2, tokenType: lexer.String},
 	}
 
 	for i := range cases {

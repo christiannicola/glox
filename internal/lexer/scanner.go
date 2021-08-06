@@ -6,6 +6,14 @@ import (
 	"strings"
 )
 
+const (
+	lineFeed       rune = '\x0A'
+	carriageReturn rune = '\x0D'
+	whitespace     rune = ' '
+	horizontalTab  rune = '\x09'
+	formFeed       rune = '\x0C'
+)
+
 // Scanner is responsible for scanning source code line by line and generating the tokens from
 // said source code.
 type Scanner struct {
@@ -48,6 +56,8 @@ func (s *Scanner) scanToken() error {
 	}
 
 	switch r {
+	case '"':
+		return s.string()
 	case '(':
 		s.addEmptyToken(LeftParen)
 	case ')':
@@ -132,17 +142,17 @@ func (s *Scanner) scanToken() error {
 					return err
 				}
 
-				if newLine != '\x0A' {
+				if newLine != lineFeed {
 					s.advance()
 				}
 			}
 		}
-	case '\x0A': // line feed
+	case lineFeed:
 		s.line++
-	case '\x0D': // carriage return
-	case ' ': // whitespace
-	case '\x09': // horizontal tab
-	case '\x0C': // form feed
+	case carriageReturn:
+	case whitespace:
+	case horizontalTab:
+	case formFeed:
 	default:
 		return SyntaxError{
 			line:    s.line,
@@ -202,6 +212,37 @@ func (s *Scanner) matchNext(expected rune) (bool, error) {
 	s.current++
 
 	return true, err
+}
+
+func (s *Scanner) string() error {
+	for !s.isAtEnd() {
+		nextRune, err := s.peek()
+		if err != nil {
+			return err
+		}
+
+		if nextRune == '"' {
+			break
+		}
+
+		if nextRune == lineFeed {
+			s.line++
+		}
+
+		if _, err = s.advance(); err != nil {
+			return err
+		}
+	}
+
+	// NOTE (c.nicola): Advances to the closing "
+	if _, err := s.advance(); err != nil {
+		return err
+	}
+
+	// NOTE (c.nicola): Trim the surrounding " from the string and add the token
+	s.addToken(String, s.source[s.start + 1:s.current - 1])
+
+	return nil
 }
 
 func (s *Scanner) addEmptyToken(tokenType TokenType) {
