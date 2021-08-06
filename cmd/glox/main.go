@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/christiannicola/glox/internal/lexer"
+	"github.com/christiannicola/glox/internal/lox"
 	"io/ioutil"
 	"os"
 )
@@ -98,7 +98,7 @@ func runPrompt() error {
 }
 
 func run(source []byte) error {
-	sourceScanner := lexer.NewScanner(string(source))
+	sourceScanner := lox.NewScanner(string(source))
 
 	tokens, err := sourceScanner.ScanTokens()
 	if err != nil {
