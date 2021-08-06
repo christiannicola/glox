@@ -1,0 +1,24 @@
+class Breakfast {
+    init(meat, bread) {
+        this.meat = meat;
+        this.bread = bread;
+    }
+
+    serve(who) {
+        print "Enjoy your " + this.meat + " and " + this.bread + ", " + who + ".";
+    }
+}
+
+class Brunch < Breakfast {
+    init(meat, bread, drink) {
+        super.init(meat, bread);
+    }
+
+    drink() {
+        print "How about a Bloody Mary?"
+    }
+}
+
+var benedict = Brunch("Ham", "English Muffin", "Coffee");
+
+benedict.serve("Me");
