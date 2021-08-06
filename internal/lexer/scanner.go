@@ -19,17 +19,37 @@ const (
 // Scanner is responsible for scanning source code line by line and generating the tokens from
 // said source code.
 type Scanner struct {
-	source  string
-	reader  *strings.Reader
-	tokens  []Token
-	start   int64
-	current int64
-	line    int64
+	source   string
+	reader   *strings.Reader
+	tokens   []Token
+	start    int64
+	current  int64
+	line     int64
+	keywords map[string]TokenType
 }
 
 // NewScanner returns a new Scanner that can scan an extract tokens from source
 func NewScanner(source string) Scanner {
-	return Scanner{source, strings.NewReader(source), make([]Token, 0), 0, 0, 1}
+	keywords := make(map[string]TokenType)
+
+	keywords["and"] = And
+	keywords["class"] = Class
+	keywords["else"] = Else
+	keywords["false"] = False
+	keywords["for"] = For
+	keywords["fun"] = Fun
+	keywords["if"] = If
+	keywords["nil"] = Nil
+	keywords["or"] = Or
+	keywords["print"] = Print
+	keywords["return"] = Return
+	keywords["super"] = Super
+	keywords["this"] = This
+	keywords["true"] = True
+	keywords["var"] = Var
+	keywords["while"] = While
+
+	return Scanner{source, strings.NewReader(source), make([]Token, 0), 0, 0, 1, keywords}
 }
 
 // ScanTokens scans the source code and returns a slice of Token from it. Returns an error if
@@ -162,6 +182,10 @@ func (s *Scanner) scanToken() error {
 			return s.number()
 		}
 
+		if s.isAlpha(r) {
+			return s.identifier()
+		}
+
 		return SyntaxError{
 			line:    s.line,
 			where:   "somewhere in the code",
@@ -260,13 +284,21 @@ func (s *Scanner) string() error {
 	}
 
 	// NOTE (c.nicola): Trim the surrounding " from the string and add the token
-	s.addToken(String, s.source[s.start + 1:s.current - 1])
+	s.addToken(String, s.source[s.start+1:s.current-1])
 
 	return nil
 }
 
 func (s *Scanner) isDigit(r rune) bool {
 	return r >= '0' && r <= '9'
+}
+
+func (s *Scanner) isAlpha(r rune) bool {
+	return (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || r == '_'
+}
+
+func (s *Scanner) isAlphaNumeric(r rune) bool {
+	return s.isAlpha(r) || s.isDigit(r)
 }
 
 func (s *Scanner) number() error {
@@ -320,6 +352,33 @@ func (s *Scanner) number() error {
 	}
 
 	s.addToken(Number, f)
+
+	return nil
+}
+
+func (s *Scanner) identifier() error {
+	for {
+		r, err := s.peek()
+		if err != nil {
+			return err
+		}
+
+		if !s.isAlpha(r) {
+			break
+		}
+
+		if _, err = s.advance(); err != nil {
+			return err
+		}
+	}
+
+	text := s.source[s.start:s.current]
+
+	if k, ok := s.keywords[text]; ok {
+		s.addEmptyToken(k)
+	} else {
+		s.addToken(Identifier, text)
+	}
 
 	return nil
 }

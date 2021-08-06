@@ -41,6 +41,22 @@ func TestScanner_ScanTokens(t *testing.T) {
 		{description: "ThreeStrings", source: "\"test-string-1\" \"test-string-2\"\n   \"test-string-3\"", expectedSliceLen: 4, tokenType: lexer.String},
 		{description: "Number", source: "123.456", expectedSliceLen: 2, tokenType: lexer.Number},
 		{description: "ThreeNumbers", source: "123 456.12\n666.77", expectedSliceLen: 4, tokenType: lexer.Number},
+		{description: "And", source: "and", expectedSliceLen: 2, tokenType: lexer.And},
+		{description: "Class", source: "class", expectedSliceLen: 2, tokenType: lexer.Class},
+		{description: "Else", source: "else", expectedSliceLen: 2, tokenType: lexer.Else},
+		{description: "False", source: "false", expectedSliceLen: 2, tokenType: lexer.False},
+		{description: "For", source: "for", expectedSliceLen: 2, tokenType: lexer.For},
+		{description: "Fun", source: "fun", expectedSliceLen: 2, tokenType: lexer.Fun},
+		{description: "If", source: "if", expectedSliceLen: 2, tokenType: lexer.If},
+		{description: "Nil", source: "nil", expectedSliceLen: 2, tokenType: lexer.Nil},
+		{description: "Or", source: "or", expectedSliceLen: 2, tokenType: lexer.Or},
+		{description: "Print", source: "print", expectedSliceLen: 2, tokenType: lexer.Print},
+		{description: "Return", source: "return", expectedSliceLen: 2, tokenType: lexer.Return},
+		{description: "Super", source: "super", expectedSliceLen: 2, tokenType: lexer.Super},
+		{description: "This", source: "this", expectedSliceLen: 2, tokenType: lexer.This},
+		{description: "True", source: "true", expectedSliceLen: 2, tokenType: lexer.True},
+		{description: "Var", source: "var", expectedSliceLen: 2, tokenType: lexer.Var},
+		{description: "While", source: "while", expectedSliceLen: 2, tokenType: lexer.While},
 	}
 
 	for i := range cases {
