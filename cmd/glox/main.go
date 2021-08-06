@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/christiannicola/glox/internal/lexer"
 	"io/ioutil"
 	"os"
 )
@@ -81,11 +82,11 @@ func runFile(path string) error {
 func runPrompt() error {
 	fmt.Printf("Welcome to glox %s\n\n", version())
 
-	scanner := bufio.NewReader(os.Stdin)
+	streamScanner := bufio.NewReader(os.Stdin)
 
 	for {
 		fmt.Print("> ")
-		line, err := scanner.ReadBytes('\n')
+		line, err := streamScanner.ReadBytes('\n')
 		if err != nil {
 			return err
 		}
@@ -97,5 +98,16 @@ func runPrompt() error {
 }
 
 func run(source []byte) error {
+	sourceScanner := lexer.NewScanner(string(source))
+
+	tokens, err := sourceScanner.ScanTokens()
+	if err != nil {
+		return err
+	}
+
+	for i := range tokens {
+		fmt.Println(tokens[i].String())
+	}
+
 	return nil
 }

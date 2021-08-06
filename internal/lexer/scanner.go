@@ -278,6 +278,14 @@ func (s *Scanner) string() error {
 		}
 	}
 
+	if s.isAtEnd() {
+		return SyntaxError{
+			line:    s.line,
+			where:   s.source[s.start:s.current],
+			message: "Unterminated string",
+		}
+	}
+
 	// NOTE (c.nicola): Advances to the closing "
 	if _, err := s.advance(); err != nil {
 		return err
