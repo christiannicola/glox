@@ -1,8 +1,8 @@
-package lexer
+package lox
 
 import "fmt"
 
-// These constants define the types of tokens that are of interest to the lexer
+// These constants define the types of tokens that are of interest to the lexer and parser
 const (
 	LeftParen TokenType = iota
 	RightParen
