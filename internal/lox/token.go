@@ -59,16 +59,21 @@ type (
 )
 
 // NewToken returns a new Token
-func NewToken(tokenType TokenType, lexeme string, literal interface{}, line int64) Token {
-	return Token{tokenType, lexeme, literal, line}
+func NewToken(tokenType TokenType, lexeme string, literal interface{}, line int64) *Token {
+	return &Token{tokenType, lexeme, literal, line}
 }
 
 // String returns token information for debugging purposes
 func (t Token) String() string {
-	return fmt.Sprintf("%d %s %v", t.tokenType, t.lexeme, t.literal)
+	return fmt.Sprintf("%d %s %v", t.tokenType, t.Lexeme(), t.literal)
 }
 
 // Type returns the TokenType of t
 func (t Token) Type() TokenType {
 	return t.tokenType
+}
+
+// Lexeme returns the lexeme of t
+func (t Token) Lexeme() string {
+	return t.lexeme
 }

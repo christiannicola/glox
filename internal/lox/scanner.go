@@ -62,7 +62,7 @@ func (s *Scanner) ScanTokens() ([]Token, error) {
 		}
 	}
 
-	s.tokens = append(s.tokens, NewToken(EOF, "", nil, s.line))
+	s.tokens = append(s.tokens, *NewToken(EOF, "", nil, s.line))
 
 	return s.tokens, nil
 }
@@ -404,5 +404,5 @@ func (s *Scanner) addToken(tokenType TokenType, literal interface{}) {
 		text = s.source[s.start:s.current]
 	}
 
-	s.tokens = append(s.tokens, NewToken(tokenType, text, literal, s.line))
+	s.tokens = append(s.tokens, *NewToken(tokenType, text, literal, s.line))
 }
