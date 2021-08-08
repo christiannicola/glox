@@ -2,9 +2,10 @@ package ast
 
 import (
 	"errors"
+	"strconv"
 )
 
-var errNoStringReturn = errors.New("accept did not return string value")
+var errValueNotSerializable = errors.New("unable to serialize value")
 
 // Printer is used to print an expression. Said expression will be returned in its string representation.
 type Printer struct{}
@@ -21,12 +22,20 @@ func (p Printer) Print(expr Expression) (string, error) {
 		return "", err
 	}
 
-	s, ok := v.(string)
-	if !ok {
-		return "", errNoStringReturn
-	}
+	return p.convertToString(v)
+}
 
-	return s, nil
+func (p Printer) convertToString(v interface{}) (string, error) {
+	switch v.(type) {
+	case string:
+		return v.(string), nil
+	case float64:
+		return strconv.FormatFloat(v.(float64), 'E', -1, 64), nil
+	case bool:
+		return strconv.FormatBool(v.(bool)), nil
+	default:
+		return "", errValueNotSerializable
+	}
 }
 
 func (p Printer) visitBinaryExpr(expr *Binary) (interface{}, error) {
@@ -61,10 +70,10 @@ func (p Printer) parenthesize(name string, expressions ...Expression) (string, e
 			return "", err
 		}
 
-		s, ok := v.(string)
+		s, err := p.convertToString(v)
 
-		if !ok {
-			return "", errNoStringReturn
+		if err != nil {
+			return "", err
 		}
 
 		rv += s
