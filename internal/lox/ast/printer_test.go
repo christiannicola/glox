@@ -1,7 +1,6 @@
 package ast_test
 
 import (
-	"github.com/christiannicola/glox/internal/lox"
 	"github.com/christiannicola/glox/internal/lox/ast"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -10,12 +9,15 @@ import (
 func TestPrinter_Print(t *testing.T) {
 	p := ast.NewPrinter()
 
+	minus := ast.NewToken(ast.Minus, "-", nil, 1)
+	star := ast.NewToken(ast.Star, "*", nil, 1)
+
 	expression := ast.NewBinary(
 		ast.NewUnary(
-			lox.NewToken(lox.Minus, "-", nil, 1),
+			&minus,
 			ast.NewLiteral("123"),
 		),
-		lox.NewToken(lox.Star, "*", nil, 1),
+		&star,
 		ast.NewGrouping(ast.NewLiteral("45.67")),
 	)
 

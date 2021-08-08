@@ -1,4 +1,4 @@
-package lox
+package ast
 
 import "fmt"
 
@@ -59,8 +59,8 @@ type (
 )
 
 // NewToken returns a new Token
-func NewToken(tokenType TokenType, lexeme string, literal interface{}, line int64) *Token {
-	return &Token{tokenType, lexeme, literal, line}
+func NewToken(tokenType TokenType, lexeme string, literal interface{}, line int64) Token {
+	return Token{tokenType, lexeme, literal, line}
 }
 
 // String returns token information for debugging purposes
@@ -76,4 +76,14 @@ func (t Token) Type() TokenType {
 // Lexeme returns the lexeme of t
 func (t Token) Lexeme() string {
 	return t.lexeme
+}
+
+// Literal returns the literal value for t
+func (t Token) Literal() interface{} {
+	return t.literal
+}
+
+// Line returns the line number where the token was located in source code
+func (t Token) Line() int64 {
+	return t.line
 }
