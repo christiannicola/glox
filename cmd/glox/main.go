@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/christiannicola/glox/internal/lox"
-	"github.com/christiannicola/glox/internal/lox/ast"
 	"io/ioutil"
 	"os"
 )
@@ -110,9 +109,9 @@ func run(source []byte) error {
 		return err
 	}
 
-	printer := ast.NewPrinter()
+	interpreter := lox.NewInterpreter()
 
-	message, err := printer.Print(expression)
+	message, err := interpreter.Evaluate(expression)
 
 	if err != nil {
 		return err
