@@ -1,7 +1,6 @@
 package lox_test
 
 import (
-	"fmt"
 	"github.com/christiannicola/glox/internal/lox"
 	"github.com/christiannicola/glox/internal/lox/ast"
 	"github.com/stretchr/testify/assert"
@@ -19,11 +18,11 @@ func TestParser_Parse(t *testing.T) {
 		ast.NewToken(ast.RightParen, ")", nil, 1),
 		ast.NewToken(ast.Star, "*", nil, 1),
 		ast.NewToken(ast.Number, "10", 5, 1),
+		ast.NewToken(ast.EOF, "", nil, 1),
 	}
 
 	parser := lox.NewParser(tokens)
 
-	expr, err := parser.Parse()
+	_, err := parser.Parse()
 	assert.NoError(t, err)
-	fmt.Println(expr)
 }

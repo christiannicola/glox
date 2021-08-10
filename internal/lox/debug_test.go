@@ -1,13 +1,14 @@
-package ast_test
+package lox_test
 
 import (
+	"github.com/christiannicola/glox/internal/lox"
 	"github.com/christiannicola/glox/internal/lox/ast"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestPrinter_Print(t *testing.T) {
-	p := ast.NewPrinter()
+	p := lox.NewDebugPrinter()
 
 	minus := ast.NewToken(ast.Minus, "-", nil, 1)
 	star := ast.NewToken(ast.Star, "*", nil, 1)
