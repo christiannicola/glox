@@ -1,7 +1,5 @@
 package ast
 
-import "github.com/christiannicola/glox/internal/lox"
-
 type (
 	// Expression is the base of the expression grammar of the lox programming language.
 	// accept takes in a ExprVisitor which will in turn do something meaningful with said expression.
@@ -20,7 +18,7 @@ type (
 	// Binary represents a binary expression in the syntax tree
 	Binary struct {
 		left     Expression
-		operator *lox.Token
+		operator *Token
 		right    Expression
 	}
 
@@ -51,7 +49,7 @@ type (
 
 	// Unary represents a unary expression in the syntax tree
 	Unary struct {
-		operator *lox.Token
+		operator *Token
 		right    Expression
 	}
 
@@ -62,7 +60,7 @@ type (
 )
 
 // NewBinary returns a pointer to a Binary expression
-func NewBinary(left Expression, operator *lox.Token, right Expression) *Binary {
+func NewBinary(left Expression, operator *Token, right Expression) *Binary {
 	return &Binary{left, operator, right}
 }
 
@@ -89,7 +87,7 @@ func (l *Literal) accept(visitor ExprVisitor) (interface{}, error) {
 }
 
 // NewUnary returns a pointer to a Unary expression
-func NewUnary(operator *lox.Token, right Expression) *Unary {
+func NewUnary(operator *Token, right Expression) *Unary {
 	return &Unary{operator, right}
 }
 

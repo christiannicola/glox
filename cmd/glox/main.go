@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/christiannicola/glox/internal/lox"
+	"github.com/christiannicola/glox/internal/lox/ast"
 	"io/ioutil"
 	"os"
 )
@@ -54,12 +55,8 @@ func version() string {
 	return fmt.Sprintf("%s (built %s)", Version, BuildDate)
 }
 
-func printError(err error) {
-	_, _ = fmt.Fprint(os.Stderr, err.Error())
-}
-
 func printErrorAndExit(err error, code int) {
-	printError(err)
+	lox.PrintError(err)
 	os.Exit(code)
 }
 
@@ -92,7 +89,8 @@ func runPrompt() error {
 		}
 
 		if err = run(line); err != nil {
-			printError(err)
+			lox.PrintError(err)
+			fmt.Println()
 		}
 	}
 }
@@ -105,9 +103,22 @@ func run(source []byte) error {
 		return err
 	}
 
-	for i := range tokens {
-		fmt.Println(tokens[i].String())
+	parser := lox.NewParser(tokens)
+	expression, err := parser.Parse()
+
+	if err != nil {
+		return err
 	}
+
+	printer := ast.NewPrinter()
+
+	message, err := printer.Print(expression)
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(message)
 
 	return nil
 }

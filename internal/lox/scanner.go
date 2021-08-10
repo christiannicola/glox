@@ -2,6 +2,7 @@ package lox
 
 import (
 	"fmt"
+	"github.com/christiannicola/glox/internal/lox/ast"
 	"io"
 	"strconv"
 	"strings"
@@ -16,27 +17,27 @@ const (
 	nullTerminator rune = '\x00'
 )
 
-var keywords map[string]TokenType
+var keywords map[string]ast.TokenType
 
 func init() {
-	keywords = make(map[string]TokenType)
+	keywords = make(map[string]ast.TokenType)
 
-	keywords["and"] = And
-	keywords["class"] = Class
-	keywords["else"] = Else
-	keywords["false"] = False
-	keywords["for"] = For
-	keywords["fun"] = Fun
-	keywords["if"] = If
-	keywords["nil"] = Nil
-	keywords["or"] = Or
-	keywords["print"] = Print
-	keywords["return"] = Return
-	keywords["super"] = Super
-	keywords["this"] = This
-	keywords["true"] = True
-	keywords["var"] = Var
-	keywords["while"] = While
+	keywords["and"] = ast.And
+	keywords["class"] = ast.Class
+	keywords["else"] = ast.Else
+	keywords["false"] = ast.False
+	keywords["for"] = ast.For
+	keywords["fun"] = ast.Fun
+	keywords["if"] = ast.If
+	keywords["nil"] = ast.Nil
+	keywords["or"] = ast.Or
+	keywords["print"] = ast.Print
+	keywords["return"] = ast.Return
+	keywords["super"] = ast.Super
+	keywords["this"] = ast.This
+	keywords["true"] = ast.True
+	keywords["var"] = ast.Var
+	keywords["while"] = ast.While
 }
 
 // Scanner is responsible for scanning source code line by line and generating the tokens from
@@ -44,7 +45,7 @@ func init() {
 type Scanner struct {
 	source  string
 	reader  *strings.Reader
-	tokens  []Token
+	tokens  []ast.Token
 	start   int64
 	current int64
 	line    int64
@@ -52,12 +53,12 @@ type Scanner struct {
 
 // NewScanner returns a new Scanner that can scan an extract tokens from source
 func NewScanner(source string) Scanner {
-	return Scanner{source, strings.NewReader(source), make([]Token, 0), 0, 0, 1}
+	return Scanner{source, strings.NewReader(source), make([]ast.Token, 0), 0, 0, 1}
 }
 
 // ScanTokens scans the source code and returns a slice of Token from it. Returns an error if
 // the source code contains syntax errors.
-func (s *Scanner) ScanTokens() ([]Token, error) {
+func (s *Scanner) ScanTokens() ([]ast.Token, error) {
 	for !s.isAtEnd() {
 		s.start = s.current
 		if err := s.scanToken(); err != nil {
@@ -65,7 +66,7 @@ func (s *Scanner) ScanTokens() ([]Token, error) {
 		}
 	}
 
-	s.tokens = append(s.tokens, *NewToken(EOF, "", nil, s.line))
+	s.tokens = append(s.tokens, ast.NewToken(ast.EOF, "", nil, s.line))
 
 	return s.tokens, nil
 }
@@ -84,25 +85,25 @@ func (s *Scanner) scanToken() error {
 	case '"':
 		return s.string()
 	case '(':
-		s.addEmptyToken(LeftParen)
+		s.addEmptyToken(ast.LeftParen)
 	case ')':
-		s.addEmptyToken(RightParen)
+		s.addEmptyToken(ast.RightParen)
 	case '{':
-		s.addEmptyToken(LeftBrace)
+		s.addEmptyToken(ast.LeftBrace)
 	case '}':
-		s.addEmptyToken(RightBrace)
+		s.addEmptyToken(ast.RightBrace)
 	case ',':
-		s.addEmptyToken(Comma)
+		s.addEmptyToken(ast.Comma)
 	case '.':
-		s.addEmptyToken(Dot)
+		s.addEmptyToken(ast.Dot)
 	case '-':
-		s.addEmptyToken(Minus)
+		s.addEmptyToken(ast.Minus)
 	case '+':
-		s.addEmptyToken(Plus)
+		s.addEmptyToken(ast.Plus)
 	case ';':
-		s.addEmptyToken(Semicolon)
+		s.addEmptyToken(ast.Semicolon)
 	case '*':
-		s.addEmptyToken(Star)
+		s.addEmptyToken(ast.Star)
 	case '!':
 		isBangEqual, err := s.matchNext('=')
 		if err != nil {
@@ -110,9 +111,9 @@ func (s *Scanner) scanToken() error {
 		}
 
 		if isBangEqual {
-			s.addEmptyToken(BangEqual)
+			s.addEmptyToken(ast.BangEqual)
 		} else {
-			s.addEmptyToken(Bang)
+			s.addEmptyToken(ast.Bang)
 		}
 	case '=':
 		isEqualEqual, err := s.matchNext('=')
@@ -121,9 +122,9 @@ func (s *Scanner) scanToken() error {
 		}
 
 		if isEqualEqual {
-			s.addEmptyToken(EqualEqual)
+			s.addEmptyToken(ast.EqualEqual)
 		} else {
-			s.addEmptyToken(Equal)
+			s.addEmptyToken(ast.Equal)
 		}
 	case '<':
 		isLessEqual, err := s.matchNext('=')
@@ -132,9 +133,9 @@ func (s *Scanner) scanToken() error {
 		}
 
 		if isLessEqual {
-			s.addEmptyToken(LessEqual)
+			s.addEmptyToken(ast.LessEqual)
 		} else {
-			s.addEmptyToken(Less)
+			s.addEmptyToken(ast.Less)
 		}
 	case '>':
 		isGreaterEqual, err := s.matchNext('=')
@@ -143,9 +144,9 @@ func (s *Scanner) scanToken() error {
 		}
 
 		if isGreaterEqual {
-			s.addEmptyToken(GreaterEqual)
+			s.addEmptyToken(ast.GreaterEqual)
 		} else {
-			s.addEmptyToken(Greater)
+			s.addEmptyToken(ast.Greater)
 		}
 	case '/':
 		isComment, err := s.matchNext('/')
@@ -155,7 +156,7 @@ func (s *Scanner) scanToken() error {
 		}
 
 		if !isComment {
-			s.addEmptyToken(Slash)
+			s.addEmptyToken(ast.Slash)
 		} else {
 			for {
 				if s.isAtEnd() {
@@ -295,7 +296,7 @@ func (s *Scanner) string() error {
 	}
 
 	// NOTE (c.nicola): Trim the surrounding " from the string and add the token
-	s.addToken(String, s.source[s.start+1:s.current-1])
+	s.addToken(ast.String, s.source[s.start+1:s.current-1])
 
 	return nil
 }
@@ -362,7 +363,7 @@ func (s *Scanner) number() error {
 		return err
 	}
 
-	s.addToken(Number, f)
+	s.addToken(ast.Number, f)
 
 	return nil
 }
@@ -388,17 +389,17 @@ func (s *Scanner) identifier() error {
 	if k, ok := keywords[text]; ok {
 		s.addEmptyToken(k)
 	} else {
-		s.addToken(Identifier, text)
+		s.addToken(ast.Identifier, text)
 	}
 
 	return nil
 }
 
-func (s *Scanner) addEmptyToken(tokenType TokenType) {
+func (s *Scanner) addEmptyToken(tokenType ast.TokenType) {
 	s.addToken(tokenType, nil)
 }
 
-func (s *Scanner) addToken(tokenType TokenType, literal interface{}) {
+func (s *Scanner) addToken(tokenType ast.TokenType, literal interface{}) {
 	var text string
 
 	if s.current > int64(len(s.source)) {
@@ -407,5 +408,5 @@ func (s *Scanner) addToken(tokenType TokenType, literal interface{}) {
 		text = s.source[s.start:s.current]
 	}
 
-	s.tokens = append(s.tokens, *NewToken(tokenType, text, literal, s.line))
+	s.tokens = append(s.tokens, ast.NewToken(tokenType, text, literal, s.line))
 }
