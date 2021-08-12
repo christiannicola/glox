@@ -20,20 +20,70 @@ func NewParser(tokens []ast.Token) *Parser {
 
 // Parse parses a single expression and returns it. Can also return a ParseError if the tokens
 // do not adhere to the language grammar.
-func (p *Parser) Parse() (ast.Expression, error) {
-	return p.expression()
+func (p *Parser) Parse() ([]ast.Stmt, error) {
+	statements := make([]ast.Stmt, 0)
+
+	for !p.isAtEnd() {
+		statement, err := p.statement()
+		if err != nil {
+			return nil, err
+		}
+
+		statements = append(statements, statement)
+	}
+
+	return statements, nil
 }
 
-func (p *Parser) expression() (ast.Expression, error) {
+func (p *Parser) statement() (ast.Stmt, error) {
+	isPrintStatement, err := p.match(ast.Print)
+	if err != nil {
+		return nil, err
+	}
+
+	if isPrintStatement {
+		return p.printStatement()
+	}
+
+	return p.exprStatement()
+}
+
+func (p *Parser) printStatement() (ast.Stmt, error) {
+	value, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err = p.consume(ast.Semicolon, "Expect ';' after value."); err != nil {
+		return nil, err
+	}
+
+	return ast.NewPrintStmt(value), nil
+}
+
+func (p *Parser) exprStatement() (ast.Stmt, error) {
+	expr, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err = p.consume(ast.Semicolon, "Expect ';' after expression."); err != nil {
+		return nil, err
+	}
+
+	return ast.NewExprStmt(expr), nil
+}
+
+func (p *Parser) expression() (ast.Expr, error) {
 	return p.equality()
 }
 
-func (p *Parser) equality() (ast.Expression, error) {
+func (p *Parser) equality() (ast.Expr, error) {
 	var (
 		matchesType bool
-		expr        ast.Expression
+		expr        ast.Expr
 		operator    *ast.Token
-		right       ast.Expression
+		right       ast.Expr
 		err         error
 	)
 
@@ -64,12 +114,12 @@ func (p *Parser) equality() (ast.Expression, error) {
 	return expr, nil
 }
 
-func (p *Parser) comparison() (ast.Expression, error) {
+func (p *Parser) comparison() (ast.Expr, error) {
 	var (
 		matchesType bool
-		expr        ast.Expression
+		expr        ast.Expr
 		operator    *ast.Token
-		right       ast.Expression
+		right       ast.Expr
 		err         error
 	)
 
@@ -100,12 +150,12 @@ func (p *Parser) comparison() (ast.Expression, error) {
 	return expr, nil
 }
 
-func (p *Parser) term() (ast.Expression, error) {
+func (p *Parser) term() (ast.Expr, error) {
 	var (
 		matchesType bool
-		expr        ast.Expression
+		expr        ast.Expr
 		operator    *ast.Token
-		right       ast.Expression
+		right       ast.Expr
 		err         error
 	)
 
@@ -136,12 +186,12 @@ func (p *Parser) term() (ast.Expression, error) {
 	return expr, nil
 }
 
-func (p *Parser) factor() (ast.Expression, error) {
+func (p *Parser) factor() (ast.Expr, error) {
 	var (
 		matchesType bool
-		expr        ast.Expression
+		expr        ast.Expr
 		operator    *ast.Token
-		right       ast.Expression
+		right       ast.Expr
 		err         error
 	)
 
@@ -172,12 +222,12 @@ func (p *Parser) factor() (ast.Expression, error) {
 	return expr, nil
 }
 
-func (p *Parser) unary() (ast.Expression, error) {
+func (p *Parser) unary() (ast.Expr, error) {
 	var (
 		matchesType bool
 		err         error
 		operator    *ast.Token
-		right       ast.Expression
+		right       ast.Expr
 	)
 
 	if matchesType, err = p.match(ast.Bang, ast.Minus); err != nil {
@@ -199,7 +249,7 @@ func (p *Parser) unary() (ast.Expression, error) {
 	return p.primary()
 }
 
-func (p *Parser) primary() (ast.Expression, error) {
+func (p *Parser) primary() (ast.Expr, error) {
 	switch p.peek().Type() {
 	case ast.False:
 		p.current++

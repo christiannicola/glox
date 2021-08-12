@@ -1,9 +1,9 @@
 package ast
 
 type (
-	// Expression is the base of the expression grammar of the lox programming language.
+	// Expr is the base of the expression grammar of the lox programming language.
 	// Accept takes in a ExprVisitor which will in turn do something meaningful with said expression.
-	Expression interface {
+	Expr interface {
 		Accept(visitor ExprVisitor) (interface{}, error)
 	}
 
@@ -18,9 +18,9 @@ type (
 
 	// Binary represents a binary expression in the syntax tree
 	Binary struct {
-		left     Expression
+		left     Expr
 		operator *Token
-		right    Expression
+		right    Expr
 	}
 
 	// BinaryVisitor accepts a binary expression and can return contextual data from it.
@@ -30,7 +30,7 @@ type (
 
 	// Grouping represents a group expression in the syntax tree
 	Grouping struct {
-		expression Expression
+		expression Expr
 	}
 
 	// GroupingVisitor accepts a grouping expression and can return contextual data from it.
@@ -51,7 +51,7 @@ type (
 	// Unary represents a unary expression in the syntax tree
 	Unary struct {
 		operator *Token
-		right    Expression
+		right    Expr
 	}
 
 	// UnaryVisitor accepts a unary expression and can return contextual data from it
@@ -61,23 +61,23 @@ type (
 )
 
 // NewBinary returns a pointer to a Binary expression
-func NewBinary(left Expression, operator *Token, right Expression) *Binary {
+func NewBinary(left Expr, operator *Token, right Expr) *Binary {
 	return &Binary{left, operator, right}
 }
 
 // Accept takes in an ExprVisitor and calls its implementation of VisitBinaryExpr.
-// Implements Expression.
+// Implements Expr.
 func (b *Binary) Accept(visitor ExprVisitor) (interface{}, error) {
 	return visitor.VisitBinaryExpr(b)
 }
 
 // Left returns the left-hand side expression of b
-func (b Binary) Left() Expression {
+func (b Binary) Left() Expr {
 	return b.left
 }
 
 // Right returns the right-hand side expression of b
-func (b Binary) Right() Expression {
+func (b Binary) Right() Expr {
 	return b.right
 }
 
@@ -87,18 +87,18 @@ func (b Binary) Operator() *Token {
 }
 
 // NewGrouping returns a pointer to a Grouping expression
-func NewGrouping(expression Expression) *Grouping {
+func NewGrouping(expression Expr) *Grouping {
 	return &Grouping{expression}
 }
 
 // Accept takes in an ExprVisitor and calls its implementation of VisitGroupingExpr.
-// Implements Expression.
+// Implements Expr.
 func (g *Grouping) Accept(visitor ExprVisitor) (interface{}, error) {
 	return visitor.VisitGroupingExpr(g)
 }
 
-// Expression returns the underlying Expression of g.
-func (g Grouping) Expression() Expression {
+// Expression returns the underlying Expr of g.
+func (g Grouping) Expression() Expr {
 	return g.expression
 }
 
@@ -108,7 +108,7 @@ func NewLiteral(value interface{}) *Literal {
 }
 
 // Accept takes in an ExprVisitor and calls its implementation of VisitLiteralExpr.
-// Implements Expression.
+// Implements Expr.
 func (l *Literal) Accept(visitor ExprVisitor) (interface{}, error) {
 	return visitor.VisitLiteralExpr(l)
 }
@@ -119,18 +119,18 @@ func (l *Literal) Value() interface{} {
 }
 
 // NewUnary returns a pointer to a Unary expression
-func NewUnary(operator *Token, right Expression) *Unary {
+func NewUnary(operator *Token, right Expr) *Unary {
 	return &Unary{operator, right}
 }
 
 // Accept takes in an ExprVisitor and calls its implementation of VisitUnaryExpr.
-// Implements Expression.
+// Implements Expr.
 func (u *Unary) Accept(visitor ExprVisitor) (interface{}, error) {
 	return visitor.VisitUnaryExpr(u)
 }
 
 // Right returns the right-hand side expression of u
-func (u Unary) Right() Expression {
+func (u Unary) Right() Expr {
 	return u.right
 }
 

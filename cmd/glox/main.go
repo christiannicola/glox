@@ -103,7 +103,7 @@ func run(source []byte) error {
 	}
 
 	parser := lox.NewParser(tokens)
-	expression, err := parser.Parse()
+	statements, err := parser.Parse()
 
 	if err != nil {
 		return err
@@ -111,13 +111,5 @@ func run(source []byte) error {
 
 	interpreter := lox.NewInterpreter()
 
-	message, err := interpreter.Evaluate(expression)
-
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(message)
-
-	return nil
+	return interpreter.Interpret(statements)
 }

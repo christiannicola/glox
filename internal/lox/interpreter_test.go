@@ -69,7 +69,7 @@ func TestInterpreter_Evaluate(t *testing.T) {
 		assert.NotNil(t, expr)
 
 		interpreter := lox.NewInterpreter()
-		value, err := interpreter.Evaluate(expr)
+		value, err := interpreter.evaluate(expr)
 		assert.NoError(t, err)
 		assert.Equal(t, cases[i].expectedValue, value)
 	}
